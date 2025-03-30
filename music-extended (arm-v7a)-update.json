@@ -1,6 +1,6 @@
 {
-  "version": "v7.16.53 (patches: 5.5.1)",
-  "versionCode": 4,
-  "zipUrl": "https://github.com/timliucode/inotia00-revanced-magisk-module/releases/download/4/music-revanced-extended-magisk-v7.16.53-arm-v7a.zip",
+  "version": "v8.05.51 (patches: 5.6.1)",
+  "versionCode": 5,
+  "zipUrl": "https://github.com/timliucode/inotia00-revanced-magisk-module/releases/download/5/music-revanced-extended-magisk-v8.05.51-arm-v7a.zip",
   "changelog": "https://raw.githubusercontent.com/timliucode/inotia00-revanced-magisk-module/update/build.md"
 }
