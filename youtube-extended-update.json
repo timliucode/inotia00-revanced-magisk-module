@@ -1,6 +1,6 @@
 {
-  "version": "v20.05.46 (patches: 5.12.1)",
-  "versionCode": 12,
-  "zipUrl": "https://github.com/timliucode/inotia00-revanced-magisk-module/releases/download/12/youtube-revanced-extended-magisk-v20.05.46-all.zip",
+  "version": "v20.05.46 (patches: 5.13.1)",
+  "versionCode": 13,
+  "zipUrl": "https://github.com/timliucode/inotia00-revanced-magisk-module/releases/download/13/youtube-revanced-extended-magisk-v20.05.46-all.zip",
   "changelog": "https://raw.githubusercontent.com/timliucode/inotia00-revanced-magisk-module/update/build.md"
 }
