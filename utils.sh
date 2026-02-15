@@ -56,7 +56,6 @@ get_rv_prebuilts() {
 			ext="jar"
 			local grab_cl=false
 		elif [ "$tag" = "Patches" ]; then
-			ext="rvp"
 			local grab_cl=true
 		else abort unreachable; fi
 		local dir=${src%/*}
@@ -75,13 +74,21 @@ get_rv_prebuilts() {
 		fi
 
 		local url file tag_name name
-		file=$(find "$dir" -name "${fprefix}-${name_ver#v}.${ext}" -type f 2>/dev/null)
+		if [ "$tag" = "Patches" ]; then
+			file=$(find "$dir" -type f \( -name "${fprefix}-${name_ver#v}.rvp" -o -name "${fprefix}-${name_ver#v}.mpp" \) 2>/dev/null)
+		else
+			file=$(find "$dir" -name "${fprefix}-${name_ver#v}.${ext}" -type f 2>/dev/null)
+		fi
 		if [ -z "$file" ]; then
 			local resp asset name
 			resp=$(gh_req "$rv_rel" -) || return 1
 			if [ "$ver" = "dev" ]; then resp=$(jq -r '.[0]' <<<"$resp"); fi
 			tag_name=$(jq -r '.tag_name' <<<"$resp")
-			asset=$(jq -e -r ".assets[] | select(.name | endswith(\"$ext\"))" <<<"$resp") || return 1
+			if [ "$tag" = "Patches" ]; then
+				asset=$(jq -e -r '.assets[] | select(.name | endswith("rvp") or endswith("mpp"))' <<<"$resp") || return 1
+			else
+				asset=$(jq -e -r ".assets[] | select(.name | endswith(\"$ext\"))" <<<"$resp") || return 1
+			fi
 			url=$(jq -r .url <<<"$asset")
 			name=$(jq -r .name <<<"$asset")
 			file="${dir}/${name}"
@@ -159,7 +166,7 @@ config_update() {
 			else
 				last_patches=$(gh_req "$rv_rel/tags/${ver}" -)
 			fi
-			if ! last_patches=$(jq -e -r '.assets[] | select(.name | endswith("rvp")) | .name' <<<"$last_patches"); then
+			if ! last_patches=$(jq -e -r '.assets[] | select(.name | endswith("rvp") or endswith("mpp")) | .name' <<<"$last_patches"); then
 				abort oops
 			fi
 			if [ "$last_patches" ]; then
@@ -590,10 +597,12 @@ build_rv() {
 		module_config "$base_template" "$pkg_name" "$version" "$arch"
 
 		local rv_patches_ver="${rv_patches_jar##*-}"
+		rv_patches_ver="${rv_patches_ver%%.rvp}"
+		rv_patches_ver="${rv_patches_ver%%.mpp}"
 		module_prop \
 			"${args[module_prop_name]}" \
 			"${app_name} ${args[rv_brand]}" \
-			"${version} (patches: ${rv_patches_ver%%.rvp})" \
+			"${version} (patches: ${rv_patches_ver})" \
 			"${app_name} ${args[rv_brand]} Magisk module" \
 			"https://raw.githubusercontent.com/${GITHUB_REPOSITORY-}/update/${upj}" \
 			"$base_template"
