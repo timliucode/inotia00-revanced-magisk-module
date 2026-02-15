@@ -86,11 +86,24 @@ get_rv_prebuilts() {
 			tag_name=$(jq -r '.tag_name' <<<"$resp")
 			if [ "$tag" = "Patches" ]; then
 				asset=$(jq -e -r '.assets[] | select(.name | endswith("rvp") or endswith("mpp"))' <<<"$resp") || return 1
+				url=$(jq -r .url <<<"$asset")
+				name=$(jq -r .name <<<"$asset")
 			else
-				asset=$(jq -e -r ".assets[] | select(.name | endswith(\"$ext\"))" <<<"$resp") || return 1
+				# Pick a single matching CLI asset to avoid multi-URL downloads.
+				local assets sel
+				assets=$(jq -r --arg ext "$ext" '.assets[] | select(.name | endswith($ext)) | [.name,.url] | @tsv' <<<"$resp") || return 1
+				if [ "$ver" = "dev" ]; then
+					sel=$(grep -i 'dev' <<<"$assets" | head -1)
+				elif [ "$ver" = "latest" ]; then
+					sel=$(grep -iv 'dev' <<<"$assets" | head -1)
+					[ -z "$sel" ] && sel=$(head -1 <<<"$assets")
+				else
+					sel=$(grep -F "${ver#v}" <<<"$assets" | head -1)
+				fi
+				[ -n "$sel" ] || return 1
+				name=$(cut -f1 <<<"$sel")
+				url=$(cut -f2 <<<"$sel")
 			fi
-			url=$(jq -r .url <<<"$asset")
-			name=$(jq -r .name <<<"$asset")
 			file="${dir}/${name}"
 			gh_dl "$file" "$url" >&2 || return 1
 			echo "$tag: $(cut -d/ -f1 <<<"$src")/${name}  " >>"${cl_dir}/changelog.md"
